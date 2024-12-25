@@ -4,49 +4,96 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Segmentation App</title>
+    <script async src="https://docs.opencv.org/master/opencv.js"></script>
+    <style>
+        .container {
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
+        }
+        .image-container {
+            margin: 0 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Image Segmentation using Thresholding</h1>
-    <p>Upload an image and adjust the threshold to see the segmentation results.</p>
-    
-    <input type="file" id="imageUpload" accept="image/*">
-    <br><br>
-    
-    <label for="threshold">Threshold: </label>
-    <input type="range" id="threshold" min="0" max="255" value="128">
-    <span id="thresholdValue">128</span>
-    
-    <br><br>
-    
-    <div id="output">
-        <img id="segmentedImage" src="" alt="Segmented Image" style="max-width:100%; height:auto;">
+    <h1 style="text-align:center;">Image Segmentation App</h1>
+    <div class="container">
+        <div class="image-container">
+            <input type="file" id="imageInput" accept="image/*">
+        </div>
+        <div class="image-container">
+            <label for="threshold">Threshold: </label>
+            <input type="range" id="threshold" min="0" max="255" value="128">
+            <p id="threshold-value">128</p>
+        </div>
+    </div>
+    <div class="container" style="justify-content: space-around;">
+        <div id="original-image" class="image-container">
+            <h3>Original Image</h3>
+            <canvas id="canvasOriginal"></canvas>
+        </div>
+        <div id="segmented-image" class="image-container">
+            <h3>Segmented Image</h3>
+            <canvas id="canvasSegmented"></canvas>
+        </div>
     </div>
 
     <script>
-        document.getElementById('threshold').addEventListener('input', function() {
-            document.getElementById('thresholdValue').innerText = this.value;
-        });
+        // Wait for OpenCV.js to be loaded
+        function onOpenCvReady() {
+            console.log("OpenCV.js is ready!");
+        }
         
-        document.getElementById('imageUpload').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            
-            reader.onload = function() {
-                const img = new Image();
-                img.onload = function() {
-                    // Simulate calling Colab API for segmentation (this would be more complex in reality)
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    
-                    // Simulate thresholding in the client-side (pseudo effect)
-                    // For simplicity, show the image directly
-                    document.getElementById('segmentedImage').src = canvas.toDataURL();
+        // Image upload event
+        document.getElementById('imageInput').addEventListener('change', handleImageUpload);
+
+        function handleImageUpload(event) {
+            let file = event.target.files[0];
+            if (file) {
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    let imgElement = new Image();
+                    imgElement.onload = function() {
+                        let mat = cv.imread(imgElement);
+                        cv.imshow('canvasOriginal', mat); // Display the original image
+                        segmentImage(mat); // Call segmentation function
+                    }
+                    imgElement.src = e.target.result;
                 };
-                img.src = reader.result;
-            };
-            reader.readAsDataURL(file);
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Image segmentation function
+        function segmentImage(imageMat) {
+            let thresholdValue = document.getElementById('threshold').value;
+            let grayMat = new cv.Mat();
+            cv.cvtColor(imageMat, grayMat, cv.COLOR_RGBA2GRAY);
+            
+            let segmentedMat = new cv.Mat();
+            cv.threshold(grayMat, segmentedMat, parseInt(thresholdValue), 255, cv.THRESH_BINARY);
+
+            // Show segmented image
+            cv.imshow('canvasSegmented', segmentedMat);
+
+            // Clean up
+            grayMat.delete();
+            segmentedMat.delete();
+        }
+
+        // Update threshold value on slider change
+        document.getElementById('threshold').addEventListener('input', function(event) {
+            document.getElementById('threshold-value').textContent = event.target.value;
+            let imageMat = cv.imread('canvasOriginal');
+            segmentImage(imageMat);
+            imageMat.delete();
         });
+
+        // Ensure OpenCV.js is ready before starting
+        if (cv.getBuildInformation) {
+            onOpenCvReady();
+        }
     </script>
 </body>
 </html>
