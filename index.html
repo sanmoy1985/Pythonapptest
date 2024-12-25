@@ -55,7 +55,7 @@
             margin-top: 10px;
         }
 
-        #downloadBtn {
+        #downloadBtn, #downloadSegmentedBtn {
             margin-top: 20px;
         }
 
@@ -94,9 +94,11 @@
         </div>
     </div>
     <button id="downloadBtn" style="display:none;">Download Original Image</button>
+    <button id="downloadSegmentedBtn" style="display:none;">Download Segmented Image</button>
 
     <script>
         let originalImageData = null; // Store the original image for download
+        let segmentedImageData = null; // Store the segmented image for download
 
         // Wait for OpenCV.js to be loaded
         function onOpenCvReady() {
@@ -168,6 +170,12 @@
             // Show the segmented image on the canvas
             cv.imshow('canvasSegmented', segmentedMat);
 
+            // Capture the segmented image as data URL for download
+            segmentedImageData = canvasSegmented.toDataURL('image/png');
+
+            // Show the "Download Segmented Image" button
+            document.getElementById('downloadSegmentedBtn').style.display = 'inline-block';
+
             // Clean up memory by releasing Mat objects
             grayMat.delete();
             segmentedMat.delete();
@@ -187,6 +195,16 @@
                 let link = document.createElement('a');
                 link.href = originalImageData; // Use the original image data URL
                 link.download = 'original_image.jpg'; // Set the download file name
+                link.click();
+            }
+        });
+
+        // Download the segmented image
+        document.getElementById('downloadSegmentedBtn').addEventListener('click', function() {
+            if (segmentedImageData) {
+                let link = document.createElement('a');
+                link.href = segmentedImageData; // Use the segmented image data URL
+                link.download = 'segmented_image.png'; // Set the download file name
                 link.click();
             }
         });
