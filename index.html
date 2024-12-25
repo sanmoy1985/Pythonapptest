@@ -55,6 +55,10 @@
             margin-top: 10px;
         }
 
+        #downloadBtn {
+            margin-top: 20px;
+        }
+
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
@@ -89,13 +93,16 @@
             <canvas id="canvasSegmented"></canvas>
         </div>
     </div>
+    <button id="downloadBtn" style="display:none;">Download Original Image</button>
 
     <script>
+        let originalImageData = null; // Store the original image for download
+
         // Wait for OpenCV.js to be loaded
         function onOpenCvReady() {
             console.log("OpenCV.js is ready!");
         }
-        
+
         // Image upload event
         document.getElementById('imageInput').addEventListener('change', handleImageUpload);
 
@@ -106,24 +113,35 @@
                 reader.onload = function(e) {
                     let imgElement = new Image();
                     imgElement.onload = function() {
+                        // Store the original image data for downloading
+                        originalImageData = e.target.result;
+
+                        // Show the "Download Original Image" button
+                        document.getElementById('downloadBtn').style.display = 'inline-block';
+
                         // Get the original image dimensions
                         let imgWidth = imgElement.width;
                         let imgHeight = imgElement.height;
-                        
+
                         // Resize the canvas to fit the image
                         let canvasOriginal = document.getElementById('canvasOriginal');
-                        canvasOriginal.width = imgWidth;
-                        canvasOriginal.height = imgHeight;
+                        let ctxOriginal = canvasOriginal.getContext('2d');
 
-                        // Draw the original image resized to fit within canvas bounds
-                        let ctx = canvasOriginal.getContext('2d');
-                        ctx.clearRect(0, 0, canvasOriginal.width, canvasOriginal.height);
-                        ctx.drawImage(imgElement, 0, 0, imgWidth, imgHeight); // Draw the image on the canvas
+                        // Resize the canvas to fit a smaller version of the image for display
+                        let displayWidth = Math.min(imgWidth, window.innerWidth - 40);  // Max image width
+                        let displayHeight = imgHeight * (displayWidth / imgWidth); // Maintain aspect ratio
+
+                        canvasOriginal.width = displayWidth;
+                        canvasOriginal.height = displayHeight;
+
+                        // Draw the image on the canvas
+                        ctxOriginal.clearRect(0, 0, canvasOriginal.width, canvasOriginal.height);
+                        ctxOriginal.drawImage(imgElement, 0, 0, displayWidth, displayHeight);
 
                         // Now process the image for segmentation
                         let mat = cv.imread(imgElement); // Read the image into an OpenCV Mat
                         segmentImage(mat); // Call segmentation function
-                    }
+                    };
                     imgElement.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
@@ -161,6 +179,16 @@
             let imageMat = cv.imread('canvasOriginal');
             segmentImage(imageMat);
             imageMat.delete();
+        });
+
+        // Download the original image
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            if (originalImageData) {
+                let link = document.createElement('a');
+                link.href = originalImageData; // Use the original image data URL
+                link.download = 'original_image.jpg'; // Set the download file name
+                link.click();
+            }
         });
 
         // Ensure OpenCV.js is ready before starting
