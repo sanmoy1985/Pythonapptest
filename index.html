@@ -14,6 +14,9 @@
         .image-container {
             margin: 0 20px;
         }
+        canvas {
+            border: 1px solid black;
+        }
     </style>
 </head>
 <body>
@@ -55,7 +58,7 @@
                 reader.onload = function(e) {
                     let imgElement = new Image();
                     imgElement.onload = function() {
-                        let mat = cv.imread(imgElement);
+                        let mat = cv.imread(imgElement); // Read the image into an OpenCV Mat
                         cv.imshow('canvasOriginal', mat); // Display the original image
                         segmentImage(mat); // Call segmentation function
                     }
@@ -69,15 +72,18 @@
         function segmentImage(imageMat) {
             let thresholdValue = document.getElementById('threshold').value;
             let grayMat = new cv.Mat();
-            cv.cvtColor(imageMat, grayMat, cv.COLOR_RGBA2GRAY);
-            
             let segmentedMat = new cv.Mat();
+
+            // Convert the image to grayscale
+            cv.cvtColor(imageMat, grayMat, cv.COLOR_RGBA2GRAY);
+
+            // Apply thresholding for segmentation
             cv.threshold(grayMat, segmentedMat, parseInt(thresholdValue), 255, cv.THRESH_BINARY);
 
-            // Show segmented image
+            // Show the segmented image on the canvas
             cv.imshow('canvasSegmented', segmentedMat);
 
-            // Clean up
+            // Clean up memory by releasing Mat objects
             grayMat.delete();
             segmentedMat.delete();
         }
@@ -97,3 +103,4 @@
     </script>
 </body>
 </html>
+
