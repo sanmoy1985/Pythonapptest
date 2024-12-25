@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Segmentation App</title>
+</head>
+<body>
+    <h1>Image Segmentation using Thresholding</h1>
+    <p>Upload an image and adjust the threshold to see the segmentation results.</p>
+    
+    <input type="file" id="imageUpload" accept="image/*">
+    <br><br>
+    
+    <label for="threshold">Threshold: </label>
+    <input type="range" id="threshold" min="0" max="255" value="128">
+    <span id="thresholdValue">128</span>
+    
+    <br><br>
+    
+    <div id="output">
+        <img id="segmentedImage" src="" alt="Segmented Image" style="max-width:100%; height:auto;">
+    </div>
+
+    <script>
+        document.getElementById('threshold').addEventListener('input', function() {
+            document.getElementById('thresholdValue').innerText = this.value;
+        });
+        
+        document.getElementById('imageUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = function() {
+                const img = new Image();
+                img.onload = function() {
+                    // Simulate calling Colab API for segmentation (this would be more complex in reality)
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    
+                    // Simulate thresholding in the client-side (pseudo effect)
+                    // For simplicity, show the image directly
+                    document.getElementById('segmentedImage').src = canvas.toDataURL();
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>
