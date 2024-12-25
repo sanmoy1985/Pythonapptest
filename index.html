@@ -106,8 +106,22 @@
                 reader.onload = function(e) {
                     let imgElement = new Image();
                     imgElement.onload = function() {
+                        // Get the original image dimensions
+                        let imgWidth = imgElement.width;
+                        let imgHeight = imgElement.height;
+                        
+                        // Resize the canvas to fit the image
+                        let canvasOriginal = document.getElementById('canvasOriginal');
+                        canvasOriginal.width = imgWidth;
+                        canvasOriginal.height = imgHeight;
+
+                        // Draw the original image resized to fit within canvas bounds
+                        let ctx = canvasOriginal.getContext('2d');
+                        ctx.clearRect(0, 0, canvasOriginal.width, canvasOriginal.height);
+                        ctx.drawImage(imgElement, 0, 0, imgWidth, imgHeight); // Draw the image on the canvas
+
+                        // Now process the image for segmentation
                         let mat = cv.imread(imgElement); // Read the image into an OpenCV Mat
-                        cv.imshow('canvasOriginal', mat); // Display the original image
                         segmentImage(mat); // Call segmentation function
                     }
                     imgElement.src = e.target.result;
@@ -127,6 +141,11 @@
 
             // Apply thresholding for segmentation
             cv.threshold(grayMat, segmentedMat, parseInt(thresholdValue), 255, cv.THRESH_BINARY);
+
+            // Get the segmented canvas element
+            let canvasSegmented = document.getElementById('canvasSegmented');
+            canvasSegmented.width = imageMat.cols; // Set canvas size to match image size
+            canvasSegmented.height = imageMat.rows;
 
             // Show the segmented image on the canvas
             cv.imshow('canvasSegmented', segmentedMat);
